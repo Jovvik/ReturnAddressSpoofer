@@ -156,15 +156,15 @@ void processObjectFile(const fs::path& file_path)
 
 	std::fstream fs{ file_path, std::ios::in | std::ios::binary | std::ios::out };
 	auto size = fs::file_size(file_path);
-	std::byte array[size];
-	fs.read(reinterpret_cast<char*>(array), size);
+  std::vector<std::byte> array(size);
+	fs.read(reinterpret_cast<char*>(array.data()), size);
 
 	size_t successful = 0;
 	size_t failed = 0;
 	size_t skipped = 0;
 
 	for (auto offset : offsets) {
-		switch (mutateNextCall(array, offset)) {
+		switch (mutateNextCall(array.data(), offset)) {
 		case SUCCESSFUL: {
 			std::cout << "Successfully mutated the function at " << std::hex << offset << std::dec << std::endl;
 			successful++;
@@ -188,7 +188,7 @@ void processObjectFile(const fs::path& file_path)
 	assert(failed == 0); // This shouldn't happen, please tell me if it does.
 
 	fs.seekg(0, std::ios::beg);
-	fs.write(reinterpret_cast<char*>(array), size);
+	fs.write(reinterpret_cast<char*>(array.data()), size);
 	fs.close();
 }
 
